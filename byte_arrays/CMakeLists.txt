@@ -1,0 +1,3 @@
+add_library(byte_arrays byte_arrays.cpp)
+target_link_libraries(byte_arrays PUBLIC cxx_setup)
+target_link_libraries(byte_arrays PRIVATE crypto)
