@@ -8,23 +8,45 @@
 
 namespace {
 
-std::vector<unsigned char> HexStringToBytesLittleEndian(const std::string &hex,
-                                                        size_t size) {
-    assert(hex.length() % 2 == 0);
-    assert(hex.length() / 2 <= size);
-    std::vector<unsigned char> bytes(size, 0);
-    for (size_t i = 0; i < hex.length(); i += 2) {
-        std::string byteString = hex.substr(i, 2);
-        unsigned char byte =
-            static_cast<unsigned char>(std::stoi(byteString, nullptr, 16));
-        bytes[bytes.size() - 1 - i / 2] = byte;
-    }
-    return bytes;
+const size_t MIN_SIZE = 1;
+
+void UpdateBytesAtIndex(const std::string& hex, std::vector<unsigned char>& bytes, size_t idx, size_t step) {
+    std::string byteString = hex.substr(idx, step);
+    unsigned char byte =
+        static_cast<unsigned char>(std::stoi(byteString, nullptr, 16));
+    const auto to_insert = (hex.length() - idx) / 2 + (hex.length() - idx) % 2 - 1;
+    bytes[to_insert] = byte;
 }
 
-std::vector<unsigned char>
-HexStringToBytesLittleEndian(const std::string &hex) {
-    return HexStringToBytesLittleEndian(hex, hex.size() / 2);
+// Convert hex number from string to little endian bytes array
+// output_size - expected output size of an array
+std::vector<unsigned char> HexStringToBytesLittleEndian(const std::string &hex,
+                                                        size_t output_size = 0) {
+    assert(hex.length());
+
+    // find first non-zero digit
+    size_t start = 0;
+    while (start < hex.length() && hex[start] == '0') {
+        start++;
+    }
+    
+    size_t bytes_count = (hex.length() - start) / 2 + (hex.length() - start) % 2;
+    // output_size = 0 - means, no limits - adjusting to the length of the string
+    output_size = output_size > 0 ? output_size : bytes_count;
+    // number of bytes in the input string should not exceed output size
+    assert(bytes_count <= output_size);
+
+    // Fill output vector
+    std::vector<unsigned char> bytes(std::max(output_size, MIN_SIZE), 0);
+    // If the first non-zero byte <= F, precess it separately
+    if ((hex.length() - start) % 2 > 0) {
+        UpdateBytesAtIndex(hex, bytes, start, 1);
+        start++;
+    }
+    for (size_t i = start; i < hex.length(); i += 2) {
+        UpdateBytesAtIndex(hex, bytes, i, 2);
+    }
+    return bytes;
 }
 
 std::vector<unsigned char> IntToHexBytes(uint32_t num) {

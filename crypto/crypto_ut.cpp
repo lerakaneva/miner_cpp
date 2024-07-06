@@ -25,5 +25,3 @@ TEST(Crypto, CalculateGeneralHashNotEmptyData) {
     std::vector<unsigned char> result = crypto::CalculateGeneralHash(data, strlen(data));
     EXPECT_EQ(result, expected);
 }
-
-/* also trst defautl split*/
